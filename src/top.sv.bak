@@ -1,0 +1,45 @@
+module DelayLine (
+
+    // Clock
+    input clk_i,
+
+    // LEDs
+    output [2:0] led_o,
+
+    // Buttons
+    input btn_i,
+
+    // SPI slave
+    input s_spi_clk_i,
+    input s_spi_mosi_i,
+    output s_spi_miso_o,
+    input s_spi_ss_i,
+
+    // Delay wires connections
+    input [2:0] delay_bit_i,
+    output [2:0] delay_bit_o
+);
+
+    wire clk_pll;
+
+    pll_inst(
+        .inclk0(clk_i),
+        .areset(1'b0),
+        .c0(clk_pll)
+    );
+
+    reg [2:0] led;
+    assign led_o = led;
+
+    parameter FREQUENCY = 16000000;
+    reg [31:0] counter;
+
+    always @(posedge clk_pll) begin
+        counter <= counter + 1;
+        if (counter == FREQUENCY / 2) begin
+            counter <= 0;
+            led <= led + 1;
+        end
+    end
+
+endmodule

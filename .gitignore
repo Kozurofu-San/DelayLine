@@ -1,0 +1,9 @@
+#  Blacklist
+output_files
+incremental_db
+db
+tb/work
+tb/+acc
+tb/*.mti
+tb/*.wlf
+*.qsf
