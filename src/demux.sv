@@ -1,4 +1,4 @@
-module demux #(
+module demultiplexer #(
     parameter WIDTH = 4,                // Number of inputs
     parameter SEL_WIDTH = $clog2(WIDTH) // Selector width
 )(

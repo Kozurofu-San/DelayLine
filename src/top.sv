@@ -17,11 +17,13 @@ module DelayLine (
     input s_spi_nss_i,
 
     // Delay wires connections
-    input strobe_i,
     input [7:0] delay_bit_i,
     output [7:0] delay_bit_o,
-    output strobe_o
+    input delayed_strobe_i,
+    output delayed_strobe_o,
 
+    input strobe_i,
+    output strobe_o
 );
 
     wire clk_pll;
@@ -60,23 +62,23 @@ module DelayLine (
 
         .spi_reg_id     (spi_reg_id),
         .spi_reg_ctrl   (spi_reg_ctrl),
-        .spi_reg_delay  (spi_reg_delay),
+        .spi_reg_delay  (spi_reg_delay)
     );
 
-    demux #(
+    demultiplexer #(
         .WIDTH  (8)
     ) demux_inst (
         .sel    (spi_reg_delay[2:0]),
-        .in     (strobe_i),
+        .in     (delayed_strobe_i),
         .out    (delay_bit_i)
     );
 
-    mux #(
+    multiplexer #(
         .WIDTH  (8)
     ) mux_inst (
         .sel    (spi_reg_delay[2:0]),
         .in     (delay_bit_o),
-        .out    (strobe_o)
+        .out    (delayed_strobe_o)
     );
 
 endmodule

@@ -9,7 +9,7 @@ module tb ();
     reg in_1;
     wire [7:0] out_1;
 
-    mux #(
+    multiplexer #(
         .WIDTH  (8)
     ) mux_dut (
         .sel    (sel_0),
@@ -17,7 +17,7 @@ module tb ();
         .out    (out_0)
     );
         
-    demux #(
+    demultiplexer #(
         .WIDTH  (8)
     ) demux_dut (
         .sel    (sel_1),

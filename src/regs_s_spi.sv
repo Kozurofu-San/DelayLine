@@ -44,7 +44,7 @@ module regs_s_spi (
     // Clock oversampling
     logic[1:0] spi_clk_ov; always_ff @(posedge clk) spi_clk_ov <= {spi_clk_ov[0], s_spi_clk_i};
     wire spi_clk_rise = (spi_clk_ov == 2'b01);
-    
+
     // Address, reading and writing flag
     reg address_phase;
     reg read_phase;
@@ -53,8 +53,8 @@ module regs_s_spi (
     // SPI Slave logic
     always @(posedge clk) begin
         if (!nrst_i) begin
-            cnt <= 0;
-            address <= 0;
+            cnt <= 4'd0;
+            address <= 8'h0;
             address_phase <= 0;
             read_phase <= 0;
             write_phase <= 0;
@@ -66,7 +66,7 @@ module regs_s_spi (
         end
         else begin
             if ((cnt <= NUMBER_OF_BITS) && spi_clk_rise && !s_spi_nss_i) begin
-                cnt <= cnt + 1;
+                cnt <= cnt + 4'd1;
                 shift_input <= {shift_input[6:0], s_spi_mosi_i};
                 shift_output <= {shift_output[6:0], 1'b0};
             end
