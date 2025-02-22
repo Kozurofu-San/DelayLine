@@ -1,15 +1,15 @@
-module delay_line (
+module regs_s_spi (
     input           clk,
     input           nrst_i,
     input           s_spi_clk_i,
     input           s_spi_mosi_i,
     output          s_spi_miso_o,
     input           s_spi_nss_i,
-    input [2:0]     delay_bit_i,
-    output [2:0]    delay_bit_o
-);
 
-    assign delay_bit_o = delay_bit_i;
+    output [7:0]    spi_reg_id,
+    output [7:0]    spi_reg_ctrl,
+    output [7:0]    spi_reg_delay
+);
 
     // Input and output
     reg [7:0] shift_input;
@@ -33,6 +33,10 @@ module delay_line (
     parameter REG_DELAY_ADDR = 4'h2;
     reg [7:0] REG_DELAY;
 
+    assign spi_reg_id = REG_ID;
+    assign spi_reg_ctrl = REG_CTRL;
+    assign spi_reg_delay = REG_DELAY;
+
     // Counter
     parameter NUMBER_OF_BITS = 8;
     reg [3:0] cnt;
@@ -40,9 +44,7 @@ module delay_line (
     // Clock oversampling
     logic[1:0] spi_clk_ov; always_ff @(posedge clk) spi_clk_ov <= {spi_clk_ov[0], s_spi_clk_i};
     wire spi_clk_rise = (spi_clk_ov == 2'b01);
-    logic[1:0] spi_nss_ov; always_ff @(posedge clk) spi_nss_ov <= {spi_nss_ov[0], s_spi_nss_i};
-    wire spi_nss_en = ~spi_nss_ov[1];
-
+    
     // Address, reading and writing flag
     reg address_phase;
     reg read_phase;
@@ -63,7 +65,7 @@ module delay_line (
             REG_ID <= 8'h58;
         end
         else begin
-            if ((cnt <= NUMBER_OF_BITS) && spi_nss_en && spi_clk_rise) begin
+            if ((cnt <= NUMBER_OF_BITS) && spi_clk_rise && !s_spi_nss_i) begin
                 cnt <= cnt + 1;
                 shift_input <= {shift_input[6:0], s_spi_mosi_i};
                 shift_output <= {shift_output[6:0], 1'b0};

@@ -2,8 +2,11 @@
 output_files
 incremental_db
 db
-tb/work
-tb/+acc
-tb/*.mti
-tb/*.wlf
-*.qsf
+
+tb/*/*
+!tb/*/*.tcl
+!tb/*/*.sv
+!tb/*/*.mpf
+
+src/*
+!src/*.sv

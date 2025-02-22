@@ -17,8 +17,11 @@ module DelayLine (
     input s_spi_nss_i,
 
     // Delay wires connections
-    input [2:0] delay_bit_i,
-    output [2:0] delay_bit_o
+    input strobe_i,
+    input [7:0] delay_bit_i,
+    output [7:0] delay_bit_o,
+    output strobe_o
+
 );
 
     wire clk_pll;
@@ -43,14 +46,37 @@ module DelayLine (
         end
     end
 
-    delay_line delay_line_inst(
-        .nrst_i(nrst_i),
-        .s_spi_clk_i(s_spi_clk_i),
-        .s_spi_mosi_i(s_spi_mosi_i),
-        .s_spi_miso_o(s_spi_miso_o),
-        .s_spi_nss_i(s_spi_nss_i),
-        .delay_bit_i(delay_bit_i),
-        .delay_bit_o(delay_bit_o)
+    wire [7:0]    spi_reg_id;
+    wire [7:0]    spi_reg_ctrl;
+    wire [7:0]    spi_reg_delay;
+
+    regs_s_spi regs_inst(
+        .clk            (clk_pll),
+        .nrst_i         (nrst_i),
+        .s_spi_clk_i    (s_spi_clk_i),
+        .s_spi_mosi_i   (s_spi_mosi_i),
+        .s_spi_miso_o   (s_spi_miso_o),
+        .s_spi_nss_i    (s_spi_nss_i),
+
+        .spi_reg_id     (spi_reg_id),
+        .spi_reg_ctrl   (spi_reg_ctrl),
+        .spi_reg_delay  (spi_reg_delay),
+    );
+
+    demux #(
+        .WIDTH  (8)
+    ) demux_inst (
+        .sel    (spi_reg_delay[2:0]),
+        .in     (strobe_i),
+        .out    (delay_bit_i)
+    );
+
+    mux #(
+        .WIDTH  (8)
+    ) mux_inst (
+        .sel    (spi_reg_delay[2:0]),
+        .in     (delay_bit_o),
+        .out    (strobe_o)
     );
 
 endmodule
