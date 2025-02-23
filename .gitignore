@@ -10,3 +10,9 @@ tb/*/*
 
 src/*
 !src/*.sv
+
+docs/*
+!docs/*.md
+!docs/*.pdf
+!docs/*.jpg
+!docs/*.eprj

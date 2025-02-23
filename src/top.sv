@@ -1,30 +1,37 @@
 module DelayLine (
 
     // Clock and reset
-    input clk_i,
-    input nrst_i,
+    input           clk_i,
+    input           nrst_i,
 
     // LEDs
-    output [2:0] led_o,
+    output [2:0]    led_o,
 
     // Buttons
-    input btn_i,
+    input           btn_i,
 
     // SPI slave
-    input s_spi_clk_i,
-    input s_spi_mosi_i,
-    output s_spi_miso_o,
-    input s_spi_nss_i,
+    input           s_spi_clk_i,
+    input           s_spi_mosi_i,
+    output          s_spi_miso_o,
+    input           s_spi_nss_i,
 
     // Delay wires connections
-    input [7:0] delay_bit_i,
-    output [7:0] delay_bit_o,
-    input delayed_strobe_i,
-    output delayed_strobe_o,
+    input           delayed_strobe_i,
+    output          delayed_strobe_o,
 
-    input strobe_i,
-    output strobe_o
+    input [10:0]    delay_bit_i,
+    output [10:0]   delay_bit_o,
+
+    input           strobe_i,
+    output          strobe_o,
+
+    input           delay_fix_i,
+    output          delay_fix_o
 );
+
+    assign delay_fix_o = strobe_i;
+    assign strobe_o = delay_fix_i;
 
     wire clk_pll;
 
@@ -66,17 +73,17 @@ module DelayLine (
     );
 
     demultiplexer #(
-        .WIDTH  (8)
+        .WIDTH  (11)
     ) demux_inst (
-        .sel    (spi_reg_delay[2:0]),
+        .sel    (spi_reg_delay[3:0]),
         .in     (delayed_strobe_i),
         .out    (delay_bit_i)
     );
 
     multiplexer #(
-        .WIDTH  (8)
+        .WIDTH  (11)
     ) mux_inst (
-        .sel    (spi_reg_delay[2:0]),
+        .sel    (spi_reg_delay[3:0]),
         .in     (delay_bit_o),
         .out    (delayed_strobe_o)
     );
