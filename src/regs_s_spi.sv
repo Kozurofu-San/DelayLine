@@ -8,7 +8,7 @@ module regs_s_spi (
 
     output [7:0]    spi_reg_id,
     output [7:0]    spi_reg_ctrl,
-    output [7:0]    spi_reg_delay
+    output [15:0]   spi_reg_delay
 );
 
     // Input and output
@@ -29,13 +29,17 @@ module regs_s_spi (
     parameter REG_CTRL_ADDR = 4'h1;
     reg [7:0] REG_CTRL;
 
-    // Delay register
-    parameter REG_DELAY_ADDR = 4'h2;
-    reg [7:0] REG_DELAY;
+    // Delay register 0 - lower 8 bits
+    parameter REG_DELAY0_ADDR = 4'h2;
+    reg [7:0] REG_DELAY0;
+
+    // Delay register 1 - high 8 bits
+    parameter REG_DELAY1_ADDR = 4'h3;
+    reg [7:0] REG_DELAY1;
 
     assign spi_reg_id = REG_ID;
     assign spi_reg_ctrl = REG_CTRL;
-    assign spi_reg_delay = REG_DELAY;
+    assign spi_reg_delay = {REG_DELAY1, REG_DELAY0};
 
     // Counter
     parameter NUMBER_OF_BITS = 8;
@@ -89,8 +93,9 @@ module regs_s_spi (
                     address_phase <= 0;
                     write_phase <= 0;
                     case (address[3:0])
-                        REG_CTRL_ADDR: REG_CTRL <= shift_input;
-                        REG_DELAY_ADDR: REG_DELAY <= shift_input;
+                        REG_CTRL_ADDR:      REG_CTRL    <= shift_input;
+                        REG_DELAY0_ADDR:    REG_DELAY0  <= shift_input;
+                        REG_DELAY1_ADDR:    REG_DELAY1  <= shift_input;
                         default: shift_output <= 0;
                     endcase
                 end
@@ -100,9 +105,10 @@ module regs_s_spi (
                 address_phase <= 0;
                 read_phase <= 0;
                 case (address[3:0])
-                    REG_ID_ADDR: shift_output <= REG_ID;
-                    REG_CTRL_ADDR: shift_output <= REG_CTRL;
-                    REG_DELAY_ADDR: shift_output <= REG_DELAY;
+                    REG_ID_ADDR:        shift_output    <= REG_ID;
+                    REG_CTRL_ADDR:      shift_output    <= REG_CTRL;
+                    REG_DELAY0_ADDR:    shift_output    <= REG_DELAY0;
+                    REG_DELAY1_ADDR:    shift_output    <= REG_DELAY1;
                     default: shift_output <= 0;
                 endcase
             end

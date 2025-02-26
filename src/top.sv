@@ -20,8 +20,11 @@ module DelayLine (
     input           delayed_strobe_i,
     output          delayed_strobe_o,
 
-    input [10:0]    delay_bit_i,
-    output [10:0]   delay_bit_o,
+    input [10:0]    delay_i,
+    output [10:0]   delay_o,
+
+    input [10:0]    delay_short_i,
+    output [10:0]   delay_short_o,
 
     input           strobe_i,
     output          strobe_o,
@@ -42,7 +45,7 @@ module DelayLine (
     );
 
     reg [2:0] led;
-    assign led_o = led;
+    assign led_o = ~led;
 
     parameter FREQUENCY = 32'd16_000_000;
     reg [31:0] counter;
@@ -57,7 +60,7 @@ module DelayLine (
 
     wire [7:0]    spi_reg_id;
     wire [7:0]    spi_reg_ctrl;
-    wire [7:0]    spi_reg_delay;
+    wire [15:0]   spi_reg_delay;
 
     regs_s_spi regs_inst(
         .clk            (clk_pll),
@@ -72,19 +75,22 @@ module DelayLine (
         .spi_reg_delay  (spi_reg_delay)
     );
 
+    for (int i = 0; i < 11; i++) begin
+        
+    end
     demultiplexer #(
-        .WIDTH  (11)
+        .WIDTH  (2)
     ) demux_inst (
-        .sel    (spi_reg_delay[3:0]),
+        .sel    (spi_reg_delay[i]),
         .in     (delayed_strobe_i),
-        .out    (delay_bit_i)
+        .out    ({delay_short_o[i], delay_o[i]})
     );
 
     multiplexer #(
-        .WIDTH  (11)
+        .WIDTH  (2)
     ) mux_inst (
-        .sel    (spi_reg_delay[3:0]),
-        .in     (delay_bit_o),
+        .sel    (spi_reg_delay[i]),
+        .in     ({delay_short_i[i], delay_i[i]}),
         .out    (delayed_strobe_o)
     );
 
