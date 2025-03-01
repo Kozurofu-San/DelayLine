@@ -1,4 +1,6 @@
-module DelayLine (
+module DelayLine #(
+    DELAY_BITS = 11
+) (
 
     // Clock and reset
     input           clk_i,
@@ -16,25 +18,26 @@ module DelayLine (
     output          s_spi_miso_o,
     input           s_spi_nss_i,
 
-    // Delay wires connections
-    input           delayed_strobe_i,
+    // Variable delay wires connections
+    input           delayed_strobe_i,       // Terminals
     output          delayed_strobe_o,
 
-    input [10:0]    delay_i,
-    output [10:0]   delay_o,
+    input [DELAY_BITS-1:0]    delay_i,      // Interconnect
+    output [DELAY_BITS-1:0]   delay_o,
+    input [DELAY_BITS-1:0]    delay_short_i,
+    output [DELAY_BITS-1:0]   delay_short_o,
 
-    input [10:0]    delay_short_i,
-    output [10:0]   delay_short_o,
+    // Fixed delay wires connections
+    input           fix_delayed_strobe_i,    // Terminals
+    output          fix_delayed_strobe_o,
 
-    input           strobe_i,
-    output          strobe_o,
-
-    input           delay_fix_i,
+    input           delay_fix_i,            // Interconnect
     output          delay_fix_o
 );
 
-    assign delay_fix_o = strobe_i;
-    assign strobe_o = delay_fix_i;
+    // Connect fixed delay wires
+    assign delay_fix_o = fix_delayed_strobe_i;
+    assign fix_delayed_strobe_o = delay_fix_i;
 
     wire clk_pll;
 
@@ -47,14 +50,25 @@ module DelayLine (
     reg [2:0] led;
     assign led_o = ~led;
 
-    parameter FREQUENCY = 32'd16_000_000;
+    localparam FREQUENCY = 32'd16_000_000;
     reg [31:0] counter;
 
     always @(posedge clk_pll) begin
-        counter <= counter + 1;
-        if (counter == (FREQUENCY - 1)) begin
+        if (nrst_i) begin
             counter <= 0;
-            led <= led + 3'b1;
+            led <= 3'b0;
+        end
+        else begin
+            if (!btn_i) begin
+                counter <= 0;
+            end
+            else begin
+                counter <= counter + 1;
+                if (counter == (FREQUENCY - 1)) begin
+                    counter <= 0;
+                    led <= led + 3'b1;
+                end
+            end
         end
     end
 
@@ -75,23 +89,46 @@ module DelayLine (
         .spi_reg_delay  (spi_reg_delay)
     );
 
-    for (int i = 0; i < 11; i++) begin
-        
-    end
     demultiplexer #(
         .WIDTH  (2)
     ) demux_inst (
-        .sel    (spi_reg_delay[i]),
+        .sel    (spi_reg_delay[0]),
         .in     (delayed_strobe_i),
-        .out    ({delay_short_o[i], delay_o[i]})
+        .out    ({delay_short_o[0], delay_o[0]})
     );
 
+    wire [DELAY_BITS-2:0] inter;
+    genvar i;
+    generate
+        for (i = 0; i < DELAY_BITS-1; i++) begin: gen_block
+
+            multiplexer #(
+                .WIDTH  (2)
+            ) mux_inst (
+                .sel    (spi_reg_delay[i]),
+                .in     ({delay_short_i[i], delay_i[i]}),
+                .out    (inter[i])
+            );
+
+            demultiplexer #(
+                .WIDTH  (2)
+            ) demux_inst (
+                .sel    (spi_reg_delay[i + 1]),
+                .in     (inter[i]),
+                .out    ({delay_short_o[i + 1], delay_o[i + 1]})
+            );
+        end
+    endgenerate
+
+    
     multiplexer #(
         .WIDTH  (2)
     ) mux_inst (
-        .sel    (spi_reg_delay[i]),
-        .in     ({delay_short_i[i], delay_i[i]}),
+        .sel    (spi_reg_delay[DELAY_BITS - 1]),
+        .in     ({delay_short_i[DELAY_BITS - 1], delay_i[DELAY_BITS - 1]}),
         .out    (delayed_strobe_o)
     );
+
+
 
 endmodule

@@ -65,7 +65,8 @@ module regs_s_spi (
             shift_input <= 8'h0;
             shift_output <= 8'h0;
             REG_CTRL <= 8'h0;
-            REG_DELAY <= 8'h0;
+            REG_DELAY0 <= 8'h0;
+            REG_DELAY1 <= 8'h0;
             REG_ID <= 8'h58;
         end
         else begin
