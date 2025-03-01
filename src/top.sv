@@ -61,6 +61,7 @@ module DelayLine #(
         else begin
             if (!btn_i) begin
                 counter <= 0;
+                led <= 3'b0;
             end
             else begin
                 counter <= counter + 1;
@@ -94,7 +95,7 @@ module DelayLine #(
     ) demux_inst (
         .sel    (spi_reg_delay[0]),
         .in     (delayed_strobe_i),
-        .out    ({delay_short_o[0], delay_o[0]})
+        .out    ({delay_o[0], delay_short_o[0]})
     );
 
     wire [DELAY_BITS-2:0] inter;
@@ -106,7 +107,7 @@ module DelayLine #(
                 .WIDTH  (2)
             ) mux_inst (
                 .sel    (spi_reg_delay[i]),
-                .in     ({delay_short_i[i], delay_i[i]}),
+                .in     ({delay_i[i], delay_short_i[i]}),
                 .out    (inter[i])
             );
 
@@ -115,7 +116,7 @@ module DelayLine #(
             ) demux_inst (
                 .sel    (spi_reg_delay[i + 1]),
                 .in     (inter[i]),
-                .out    ({delay_short_o[i + 1], delay_o[i + 1]})
+                .out    ({delay_o[i + 1], delay_short_o[i + 1]})
             );
         end
     endgenerate
@@ -125,7 +126,7 @@ module DelayLine #(
         .WIDTH  (2)
     ) mux_inst (
         .sel    (spi_reg_delay[DELAY_BITS - 1]),
-        .in     ({delay_short_i[DELAY_BITS - 1], delay_i[DELAY_BITS - 1]}),
+        .in     ({delay_i[DELAY_BITS - 1], delay_short_i[DELAY_BITS - 1]}),
         .out    (delayed_strobe_o)
     );
 
